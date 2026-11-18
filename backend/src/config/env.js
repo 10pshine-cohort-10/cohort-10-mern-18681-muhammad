@@ -11,4 +11,10 @@ export const config = {
     process.env.LOG_LEVEL ||
     (process.env.NODE_ENV === "production" ? "info" : "debug"),
   CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
+  JWT:{
+    ACCESS_TOKEN:process.env.JWT_ACCESS_TOKEN,
+    REFRESH_TOKEN:process.env.JWT_REFRESH_TOKEN,
+    ACCESS_TOKEN_EXPIRES_IN:process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+    REFRESH_TOKEN_EXPIRES_IN:process.env.JWT_REFRESH_TOKEN_EXPIRES_IN
+  }
 };
