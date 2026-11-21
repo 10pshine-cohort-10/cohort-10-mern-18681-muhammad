@@ -21,3 +21,10 @@ export const revokedAllSessions = async (userId) => {
     { isRevoked: true },
   )
 }
+
+export const findSessionById=async (sessionId)=>{
+  return sessionModel.findOne({_id:sessionId,isRevoked:false})
+}
+export const revokeSessionById=async(sessionId)=>{
+  return sessionModel.findByIdAndUpdate(sessionId,{isRevoked:true})
+}
