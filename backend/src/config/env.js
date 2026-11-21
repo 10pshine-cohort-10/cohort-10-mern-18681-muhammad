@@ -18,3 +18,9 @@ export const config = {
     REFRESH_TOKEN_EXPIRES_IN:process.env.JWT_REFRESH_TOKEN_EXPIRES_IN
   }
 };
+const requiredJwtKeys = ["ACCESS_TOKEN", "REFRESH_TOKEN", "ACCESS_TOKEN_EXPIRES_IN", "REFRESH_TOKEN_EXPIRES_IN"];
+for (const key of requiredJwtKeys) {
+  if (!config.JWT[key]) {
+    throw new Error(`Missing required JWT configuration: JWT_${key}. Check your .env file.`);
+  }
+}

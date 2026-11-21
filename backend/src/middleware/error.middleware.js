@@ -11,12 +11,7 @@ export const notFoundHandler = (req, res, next) => {
 };
 
 export const errorHandler = (err, req, res, next) => {
-  let { statusCode, message } = err;
-
-  if (!statusCode) {
-    statusCode = 500;
-    message = "Internal Server Error";
-  }
+  let statusCode = err.statusCode || 500;
 
   logger.error(
     {
@@ -29,12 +24,13 @@ export const errorHandler = (err, req, res, next) => {
     `[Error] ${req.method} ${req.originalUrl} - ${err.message}`,
   );
 
+  const isOperational = err.isOperational === true;
+
   res.status(statusCode).json({
     success: false,
     statusCode,
-    message: err.message || message,
-    errors: err.errors || [],
-
+    message: isOperational ? err.message : "Internal Server Error",
+    errors: isOperational ? err.errors || [] : [],
     ...(config.NODE_ENV === "development" && { stack: err.stack }),
   });
 };

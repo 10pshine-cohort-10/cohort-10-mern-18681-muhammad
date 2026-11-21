@@ -22,7 +22,8 @@ export const registerUser = async ({
   userAgent,
   ip,
 }) => {
-  const isExist = await findUserByEmail(email);
+  try {
+    const isExist = await findUserByEmail(email);
   if (isExist) {
     throw new ApiError(400, "Email is already registered");
   }
@@ -46,11 +47,16 @@ export const registerUser = async ({
     userAgent,
     expiresAt: sessionExpiration,
   });
-  return { user, accessToken, refreshToken };
+  const userDetails = { _id: user._id, name: user.name, email: user.email };
+  return { user:userDetails, accessToken, refreshToken };
+  } catch (error) {
+    throw error
+  }
 };
 
 export const loginUser = async ({ email, password, ip, userAgent }) => {
-  const user = await findUserByEmail(email, true);
+  try {
+    const user = await findUserByEmail(email, true);
   if (!user) {
     throw new ApiError(401, "Invalid credentials");
   }
@@ -71,29 +77,50 @@ export const loginUser = async ({ email, password, ip, userAgent }) => {
     userAgent,
     expiresAt: sessionExpiration,
   });
-  const userDetails = { name: user.name, email: user.email };
+  const userDetails = { _id: user._id, name: user.name, email: user.email };
   return { userDetails, accessToken, refreshToken };
+  } catch (error) {
+    throw error
+  }
 };
 
 export const logout = async (token) => {
-  const decoded = verifyRefreshToken(token);
+try {
+      const decoded = verifyRefreshToken(token);
   if (!decoded) {
+    throw new ApiError(401, "Refresh Token is invalid or expired");
+  }
+  const session = await findSessionById(decoded.sessionId);
+  if (!session || session.refreshToken !== hashToken(token)) {
     throw new ApiError(401, "Refresh Token is invalid or expired");
   }
   await revokeSessionById(decoded.sessionId);
   return { message: "Logged out successfully" };
+} catch (error) {
+    throw error
+}
 };
 export const logoutAll = async (token) => {
-  const decoded = verifyRefreshToken(token);
+ try {
+     const decoded = verifyRefreshToken(token);
   if (!decoded) {
+    throw new ApiError(401, "Refresh Token is invalid or expired");
+  }
+
+  const session = await findSessionById(decoded.sessionId);
+  if (!session || session.refreshToken !== hashToken(token)) {
     throw new ApiError(401, "Refresh Token is invalid or expired");
   }
   await revokedAllSessions(decoded.id);
   return { message: "logged out from all devices successfully" };
+ } catch (error) {
+    throw error
+ }
 };
 
 export const refreshAuthTokens = async (token) => {
-  const decoded = verifyRefreshToken(token);
+ try {
+     const decoded = verifyRefreshToken(token);
   if (!decoded) {
     throw new ApiError(401, "Refresh Token is invalid or expired");
   }
@@ -107,4 +134,7 @@ export const refreshAuthTokens = async (token) => {
   }
 
   return generateAccessToken({ id: session.userId, email: decoded.email });
+ } catch (error) {
+    throw error
+ }
 };
