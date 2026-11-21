@@ -6,11 +6,18 @@ import { connectDb } from "./src/db/connect.db.js";
 async function startServer() {
   try {
     await connectDb();
+
     const server = app.listen(config.PORT, () => {
       logger.info(
         { port: config.PORT, env: config.NODE_ENV },
         `Server running in ${config.NODE_ENV} mode on port ${config.PORT}`,
       );
+    });
+
+   
+    server.on("error", (err) => {
+      logger.fatal({ err }, `Server failed to start on port ${config.PORT}`);
+      process.exit(1);
     });
 
     const handleFatalError = (err, origin) => {
