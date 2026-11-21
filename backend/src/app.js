@@ -8,6 +8,8 @@ import {
   errorHandler,
   notFoundHandler,
 } from "./middleware/error.middleware.js";
+import authRoutes from "./routes/auth.route.js";
+
 
 const app = express();
 
@@ -24,13 +26,14 @@ app.use(cookieParser());
 
 app.use(requestLogger);
 
-app.get("/api/health", (req, res) => {
+app.get("/api/v1/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "Notes App Backend is healthy and operations",
     uptime: `${process.uptime().toFixed(2)} seconds`,
   });
 });
+app.use('/api/v1/auth',authRoutes)
 
 app.use(notFoundHandler);
 app.use(errorHandler);
