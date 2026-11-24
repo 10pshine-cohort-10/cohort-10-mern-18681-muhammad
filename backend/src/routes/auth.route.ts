@@ -5,21 +5,22 @@ import {
   registerValidation,
 } from "../validation/auth.validation.js";
 import {
-    getMe,
+  getMe,
   login,
-  logoutAlls,
-  logouts,
+  logoutAllHandler,
+  logoutHandler,
   refresh,
   register,
 } from "../controller/auth.controller.js";
 import { authValidate } from "../middleware/auth.middleware.js";
 
-const route = Router();
+const route: Router = Router();
 
 route.post("/register", validate(registerValidation), register);
 route.post("/login", validate(loginValidation), login);
-route.post("/logout", logouts);
-route.post("/logout-all", logoutAlls);
+route.post("/logout", logoutHandler);
+route.post("/logout-all", logoutAllHandler);
 route.post("/refresh", refresh);
-route.get('/me',authValidate,getMe)
+route.get("/me", authValidate, getMe);
+
 export default route;

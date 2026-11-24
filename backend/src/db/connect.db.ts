@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { config } from "../config/env.js";
 import { logger } from "../config/logger.js";
 
-export async function connectDb() {
+export async function connectDb() :Promise<void>{
   try {
     const connect = await mongoose.connect(config.MONGO_URI);
     logger.info(

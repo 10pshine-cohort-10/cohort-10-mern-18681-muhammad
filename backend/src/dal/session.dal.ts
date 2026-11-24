@@ -1,6 +1,8 @@
+import { Types } from "mongoose";
 import sessionModel from "../model/Session.model.js";
+import {  ISessionDocument, ISessionInput } from "../types/session.types.js";
 
-export const createSession = async (sessionData) => {
+export const createSession = async (sessionData:ISessionInput) :Promise<ISessionDocument>=> {
   try {
     return await sessionModel.create(sessionData);
   } catch (error) {
@@ -8,7 +10,7 @@ export const createSession = async (sessionData) => {
   }
 };
 
-export const revokeSessionByToken = async (token) => {
+export const revokeSessionByToken = async (token:string) :Promise<ISessionDocument | null>=> {
   try {
     return await sessionModel.findOneAndUpdate(
       { refreshToken: token },
@@ -19,7 +21,7 @@ export const revokeSessionByToken = async (token) => {
   }
 };
 
-export const findSessionByToken = async (token) => {
+export const findSessionByToken = async (token:string) : Promise<ISessionDocument|null> => {
   try {
     return await sessionModel.findOne({
       refreshToken: token,
@@ -30,9 +32,9 @@ export const findSessionByToken = async (token) => {
   }
 };
 
-export const revokedAllSessions = async (userId) => {
+export const revokedAllSessions = async (userId:string |Types.ObjectId):Promise<void> => {
   try {
-    return await sessionModel.updateMany(
+    await sessionModel.updateMany(
       { userId, isRevoked: false },
       { isRevoked: true },
     );
@@ -41,14 +43,14 @@ export const revokedAllSessions = async (userId) => {
   }
 };
 
-export const findSessionById = async (sessionId) => {
+export const findSessionById = async (sessionId:string |Types.ObjectId):Promise<ISessionDocument|null> => {
   try {
     return sessionModel.findOne({ _id: sessionId, isRevoked: false });
   } catch (error) {
     throw error;
   }
 };
-export const revokeSessionById = async (sessionId) => {
+export const revokeSessionById = async (sessionId:string | Types.ObjectId) :Promise<ISessionDocument|null> => {
   try {
     return sessionModel.findByIdAndUpdate(sessionId, { isRevoked: true });
   } catch (error) {
