@@ -3,6 +3,9 @@ import { randomUUID } from "node:crypto";
 import { logger } from "../config/logger.js";
 import { IncomingMessage, ServerResponse } from "node:http";
 
+interface RequestWithLoggingMeta extends IncomingMessage {
+  query?: unknown;
+}
 export const requestLogger = pinoHttp({
   logger,
 
@@ -13,7 +16,7 @@ export const requestLogger = pinoHttp({
     return "info";
   },
   serializers: {
-    req(req:any) {
+    req(req:RequestWithLoggingMeta) {
       return {
         id: req.id,
         method: req.method,
@@ -21,7 +24,7 @@ export const requestLogger = pinoHttp({
         query: req.query,
       };
     },
-    res(res:any) {
+    res(res:ServerResponse) {
       return {
         statusCode: res.statusCode,
       };

@@ -8,6 +8,7 @@ import {
   refreshAuthTokens,
 } from "../service/auth.service.js";
 import { ApiError } from "../utils/ApiError.js";
+import { LoginBodyDto, RegisterBodyDto } from "../types/auth.types.js";
 
 const COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
@@ -17,7 +18,7 @@ const COOKIE_OPTIONS: CookieOptions = {
 };
 
 export const register = async (
-  req: Request,
+  req: Request<{},{},RegisterBodyDto>,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
@@ -48,7 +49,7 @@ export const register = async (
 };
 
 export const login = async (
-  req: Request,
+  req: Request<{},{},LoginBodyDto>,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {

@@ -31,3 +31,13 @@ export interface IRefreshTokenPayload{
     email:string,
     sessionId:string
 }
+
+export interface RegisterBodyDto {
+  name: string;
+  email: string;
+  password: string;
+}
+export interface LoginBodyDto {
+  email: string;
+  password: string;
+}

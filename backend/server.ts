@@ -21,7 +21,13 @@ async function startServer(): Promise<void> {
 
     const handleFatalError = (err: unknown, origin: string) => {
       logger.fatal({ err, origin }, "Fatal error detected! Closing Server");
+      const forceExitTimer = setTimeout(() => {
+        logger.fatal("Forced exit deadline reached. Terminating process immediately.");
+        process.exit(1);
+      }, 10000);
+      forceExitTimer.unref();
       server.close(() => {
+        clearTimeout(forceExitTimer);
         process.exit(1);
       });
     };

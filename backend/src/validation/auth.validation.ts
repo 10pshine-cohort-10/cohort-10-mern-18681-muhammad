@@ -1,7 +1,8 @@
-import joi from "joi";
+import joi, { ObjectSchema } from "joi";
+import { LoginBodyDto, RegisterBodyDto } from "../types/auth.types.js";
 
-const registerValidation = joi
-  .object({
+const registerValidation :ObjectSchema<RegisterBodyDto> = joi
+  .object<RegisterBodyDto>({
     name: joi.string().trim().min(3).max(50).required().messages({
       "string.empty": "Name is required",
       "string.min": "Name must be at least 3 characters long",
@@ -14,7 +15,7 @@ const registerValidation = joi
   .string()
   .min(8)
   .max(30)
-  .custom((value, helpers) => {
+  .custom((value: string, helpers) => {
     if (Buffer.byteLength(value, "utf8") > 72) {
       return helpers.error("string.byteLimit");
     }
@@ -32,8 +33,8 @@ const registerValidation = joi
   })
   .required();
 
-const loginValidation = joi
-  .object({
+const loginValidation:ObjectSchema<LoginBodyDto> = joi
+  .object<LoginBodyDto>({
     email: joi.string().email().trim().lowercase().required().messages({
       "string.empty": "Email is required",
       "string.email": "Please provide a valid email address",

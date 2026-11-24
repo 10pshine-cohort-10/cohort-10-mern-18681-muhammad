@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import type { SignOptions } from "jsonwebtoken";
 
 dotenv.config();
 
@@ -11,8 +12,8 @@ export interface IConfig {
   JWT: {
     ACCESS_TOKEN: string;
     REFRESH_TOKEN: string;
-    ACCESS_TOKEN_EXPIRES_IN: string;
-    REFRESH_TOKEN_EXPIRES_IN: string;
+    ACCESS_TOKEN_EXPIRES_IN: NonNullable<SignOptions["expiresIn"]>;
+    REFRESH_TOKEN_EXPIRES_IN: NonNullable<SignOptions["expiresIn"]>;
   };
 }
 
@@ -28,8 +29,10 @@ export const config: IConfig = {
   JWT: {
     ACCESS_TOKEN: process.env.JWT_ACCESS_TOKEN || "",
     REFRESH_TOKEN: process.env.JWT_REFRESH_TOKEN || "",
-    ACCESS_TOKEN_EXPIRES_IN: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || "15m",
-    REFRESH_TOKEN_EXPIRES_IN: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || "7d",
+    ACCESS_TOKEN_EXPIRES_IN:
+      (process.env.JWT_ACCESS_TOKEN_EXPIRES_IN as NonNullable<SignOptions["expiresIn"]>) || "15m",
+    REFRESH_TOKEN_EXPIRES_IN:
+      (process.env.JWT_REFRESH_TOKEN_EXPIRES_IN as NonNullable<SignOptions["expiresIn"]>) || "7d",
   },
 };
 

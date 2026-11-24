@@ -5,13 +5,13 @@ import { ApiError } from "../utils/ApiError.js";
 import { IAccessTokenPayload, IRefreshTokenPayload } from "../types/auth.types.js";
 export const generateAccessToken = (payload : IAccessTokenPayload):string => {
   return jwt.sign(payload, config.JWT.ACCESS_TOKEN, {
-    expiresIn: config.JWT.ACCESS_TOKEN_EXPIRES_IN as any,
+    expiresIn: config.JWT.ACCESS_TOKEN_EXPIRES_IN ,
   });
 };
 
 export const generateRefreshToken = (payload:IRefreshTokenPayload):string => {
   return jwt.sign(payload, config.JWT.REFRESH_TOKEN, {
-    expiresIn: config.JWT.REFRESH_TOKEN_EXPIRES_IN as any,
+    expiresIn: config.JWT.REFRESH_TOKEN_EXPIRES_IN ,
   });
 };
 
