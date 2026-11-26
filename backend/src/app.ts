@@ -9,6 +9,7 @@ import {
   notFoundHandler,
 } from "./middleware/error.middleware.js";
 import authRoutes from "./routes/auth.route.js";
+import noteRoutes from "./routes/note.route.js";
 
 const app: Express = express();
 
@@ -34,6 +35,7 @@ app.get("/api/v1/health", (_req: Request, res: Response) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/notes", noteRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
