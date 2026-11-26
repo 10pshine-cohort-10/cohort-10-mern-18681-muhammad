@@ -8,13 +8,37 @@ import {
   refreshAuthTokens,
 } from "../service/auth.service.js";
 import { ApiError } from "../utils/ApiError.js";
-import { LoginBodyDto, RegisterBodyDto } from "../types/auth.types.js";
+import {
+  LoginBodyDto,
+  RefreshTokenBodyDto,
+  RegisterBodyDto,
+} from "../types/auth.types.js";
 
 const COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
   secure: config.NODE_ENV === "production",
   sameSite: "strict",
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
+const getRefreshCookieOptions = (expiresAt: Date): CookieOptions => ({
+  ...COOKIE_OPTIONS,
+  maxAge: Math.max(0, expiresAt.getTime() - Date.now()),
+});
+
+const extractRefreshToken = (
+  req: Request<{}, {}, RefreshTokenBodyDto>,
+): string | undefined => {
+  const cookieToken: unknown = req.cookies?.refreshToken;
+  if (typeof cookieToken === "string" && cookieToken.trim().length > 0) {
+    return cookieToken;
+  }
+
+  const bodyToken = req.body?.refreshToken;
+  if (typeof bodyToken === "string" && bodyToken.trim().length > 0) {
+    return bodyToken;
+  }
+
+  return undefined;
 };
 
 export const register = async (
@@ -35,7 +59,11 @@ export const register = async (
       ip,
     });
 
-    res.cookie("refreshToken", results.refreshToken, COOKIE_OPTIONS);
+    res.cookie(
+      "refreshToken",
+      results.refreshToken,
+      getRefreshCookieOptions(results.refreshTokenExpiresAt),
+    );
 
     res.status(201).json({
       success: true,
@@ -60,7 +88,11 @@ export const login = async (
 
     const results = await loginUser({ email, password, ip, userAgent });
 
-    res.cookie("refreshToken", results.refreshToken, COOKIE_OPTIONS);
+    res.cookie(
+      "refreshToken",
+      results.refreshToken,
+      getRefreshCookieOptions(results.refreshTokenExpiresAt),
+    );
 
     res.status(200).json({
       success: true,
@@ -74,12 +106,12 @@ export const login = async (
 };
 
 export const logoutHandler = async (
-  req: Request,
+  req: Request<{}, {}, RefreshTokenBodyDto>,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const refreshToken = (req.cookies?.refreshToken || req.body?.refreshToken) as string | undefined;
+    const refreshToken = extractRefreshToken(req);
     if (!refreshToken) {
       throw new ApiError(401, "refreshToken is required");
     }
@@ -97,12 +129,12 @@ export const logoutHandler = async (
 };
 
 export const logoutAllHandler = async (
-  req: Request,
+  req: Request<{}, {}, RefreshTokenBodyDto>,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const refreshToken = (req.cookies?.refreshToken || req.body?.refreshToken) as string | undefined;
+    const refreshToken = extractRefreshToken(req);
     if (!refreshToken) {
       throw new ApiError(401, "refreshToken is required");
     }
@@ -120,12 +152,12 @@ export const logoutAllHandler = async (
 };
 
 export const refresh = async (
-  req: Request,
+  req: Request<{}, {}, RefreshTokenBodyDto>,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const refreshToken = (req.cookies?.refreshToken || req.body?.refreshToken) as string | undefined;
+    const refreshToken = extractRefreshToken(req);
     if (!refreshToken) {
       throw new ApiError(401, "Refresh Token is required");
     }

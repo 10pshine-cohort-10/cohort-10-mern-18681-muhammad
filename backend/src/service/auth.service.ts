@@ -10,6 +10,7 @@ import {
 import {
   generateAccessToken,
   generateRefreshToken,
+  getTokenExpirationDate,
   hashToken,
   verifyRefreshToken,
 } from "./token.service.js";
@@ -44,7 +45,7 @@ export const registerUser = async ({
       sessionId: sessionId.toString(),
     });
     const hashedRefreshToken = hashToken(refreshToken);
-    const sessionExpiration = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const sessionExpiration = getTokenExpirationDate(refreshToken);
 
     await createSession({
       _id: sessionId,
@@ -60,7 +61,12 @@ export const registerUser = async ({
       name: user.name,
       email: user.email,
     };
-    return { user: userDetails, accessToken, refreshToken };
+    return {
+      user: userDetails,
+      accessToken,
+      refreshToken,
+      refreshTokenExpiresAt: sessionExpiration,
+    };
   } catch (error) {
     throw error;
   }
@@ -82,7 +88,6 @@ export const loginUser = async ({
       throw new ApiError(401, "Invalid credentials");
     }
     const sessionId = new mongoose.Types.ObjectId();
-    const sessionExpiration = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const accessToken = generateAccessToken({ id: user._id.toString(), email });
     const refreshToken = generateRefreshToken({
       id: user._id.toString(),
@@ -90,6 +95,7 @@ export const loginUser = async ({
       sessionId: sessionId.toString(),
     });
     const hashedRefreshToken = hashToken(refreshToken);
+    const sessionExpiration = getTokenExpirationDate(refreshToken);
 
     await createSession({
       _id: sessionId,
@@ -105,7 +111,12 @@ export const loginUser = async ({
       name: user.name,
       email: user.email,
     };
-    return { user: userDetails, accessToken, refreshToken };
+    return {
+      user: userDetails,
+      accessToken,
+      refreshToken,
+      refreshTokenExpiresAt: sessionExpiration,
+    };
   } catch (error) {
     throw error;
   }
@@ -152,7 +163,7 @@ export const refreshAuthTokens = async (token: string): Promise<string> => {
       throw new ApiError(401, "Refresh Token is invalid or expired");
     }
     const session = await findSessionById(decoded.sessionId);
-    if (!session) {
+    if (!session || session.expiresAt.getTime() <= Date.now()) {
       throw new ApiError(401, "Refresh Token is invalid or expired");
     }
     const hashedToken = hashToken(token);

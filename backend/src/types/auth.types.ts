@@ -19,7 +19,8 @@ export interface ILoginInput{
 export interface IAuthResult{
     user:ISafeUser,
     refreshToken:string,
-    accessToken:string
+    accessToken:string,
+    refreshTokenExpiresAt:Date
 }
 
 export interface IAccessTokenPayload{
@@ -40,4 +41,8 @@ export interface RegisterBodyDto {
 export interface LoginBodyDto {
   email: string;
   password: string;
+}
+
+export interface RefreshTokenBodyDto {
+  refreshToken?: string;
 }

@@ -60,75 +60,88 @@ const escapeRegex = (text: string): string => {
 };
 
 export const createNote=async(input:ICreateNoteInput,):Promise<INoteDocument>=>{
-    const content=sanitizeContent(input.content)
-    if(!content.trim()){
-        throw new ApiError(400,
-            "Note Content cannot be empty or contain only unsafe html"
-        )
+    try {
+        const content=sanitizeContent(input.content)
+        if(!content.trim()){
+            throw new ApiError(400,
+                "Note Content cannot be empty or contain only unsafe html"
+            )
 
+        }
+        const normalizeTag = normalizeTags(input.tags??[])
+        return await createNoteInDB({
+            userId:input.userId,
+            title:input.title,
+            content,
+            tags:normalizeTag,
+            isPinned:input.isPinned ?? false
+        })
+    } catch (error) {
+        throw error
     }
-    const normalizeTag = normalizeTags(input.tags??[])
-    return await createNoteInDB({
-        userId:input.userId,
-        title:input.title,
-        content,
-        tags:normalizeTag,
-        isPinned:input.isPinned ?? false
-    })
 }
 export const getNotes=async({
     userId,query}:IGetNotesInput
 ):Promise<IPaginatedNotesResult>=>{
-    const {page,limit,search,tag,isPinned,isArchived,sortBy,orderBy}=query
-    const filter:FilterQuery<INoteDocument>={
-      userId,
-      isArchived:isArchived??false
-    }
-    if(isPinned!==undefined){
-      filter.isPinned=isPinned
-    }
-    if(tag && tag.trim().length>0){
-      filter.tags=tag.trim().toLowerCase()
-    }
-    if(search && search.trim().length>0){
-      const safeSearch = escapeRegex(search.trim())
-      filter.$or=[{title:{$regex:safeSearch,$options:'i'}},
-        {content:{$regex:safeSearch,$options:'i'}}
-      ]
-    }
-    const sortDirection :SortOrder=orderBy==='asc'?1:-1
-    const sort:Record<string,SortOrder>={
-      isPinned:-1,
-      [sortBy]:sortDirection
-    }
-    const skip=(page-1)*limit
-    const {notes,totalCount}= await findNotesAndCount(
-      filter,
-      sort,
-      skip,
-      limit
-    )
-    const totalPages = totalCount ===0?0:Math.ceil(totalCount/limit)
-    return {
-      notes,
-      pagination:{
-        totalCount,
-        totalPages,
-        currentPage:page,
-        limit,
-        hasNextPage:page<totalPages,
-        hasPrevPage:page>1
-      }
+    try {
+        const {page,limit,search,tag,isPinned,isArchived,sortBy,orderBy}=query
+        const filter:FilterQuery<INoteDocument>={
+          userId,
+          isArchived:isArchived??false
+        }
+        if(isPinned!==undefined){
+          filter.isPinned=isPinned
+        }
+        if(tag && tag.trim().length>0){
+          filter.tags=tag.trim().toLowerCase()
+        }
+        if(search && search.trim().length>0){
+          const safeSearch = escapeRegex(search.trim())
+          filter.$or=[{title:{$regex:safeSearch,$options:'i'}},
+            {content:{$regex:safeSearch,$options:'i'}}
+          ]
+        }
+        const sortDirection :SortOrder=orderBy==='asc'?1:-1
+        const sort:Record<string,SortOrder>={
+          isPinned:-1,
+          [sortBy]:sortDirection,
+          _id:sortDirection
+        }
+        const skip=(page-1)*limit
+        const {notes,totalCount}= await findNotesAndCount(
+          filter,
+          sort,
+          skip,
+          limit
+        )
+        const totalPages = totalCount ===0?0:Math.ceil(totalCount/limit)
+        return {
+          notes,
+          pagination:{
+            totalCount,
+            totalPages,
+            currentPage:page,
+            limit,
+            hasNextPage:page<totalPages,
+            hasPrevPage:page>1
+          }
+        }
+    } catch (error) {
+        throw error
     }
 }
 export const getNoteById=async(noteId:string,
   userId:string
 ):Promise<INoteDocument>=>{
-  const note = await findNoteByIdAndUser(noteId,userId)
-  if(!note){
-    throw new ApiError(404,"Note not found")
+  try {
+    const note = await findNoteByIdAndUser(noteId,userId)
+    if(!note){
+      throw new ApiError(404,"Note not found")
+    }
+    return note
+  } catch (error) {
+    throw error
   }
-  return note
 }
 
 export const updateNote=async({
@@ -136,31 +149,39 @@ export const updateNote=async({
   userId,
   updateData
 }:IUpdateNoteInput):Promise<INoteDocument>=>{
-  const sanitizedUpdate:UpdateNoteBodyDto={...updateData}
-  if(updateData.content!==undefined){
-    const cleanedContent=sanitizeContent(updateData.content)
-    if(!cleanedContent.trim()){
-      throw new ApiError(400,"Note content cannot be empty or contain only unsafe HTML")
+  try {
+    const sanitizedUpdate:UpdateNoteBodyDto={...updateData}
+    if(updateData.content!==undefined){
+      const cleanedContent=sanitizeContent(updateData.content)
+      if(!cleanedContent.trim()){
+        throw new ApiError(400,"Note content cannot be empty or contain only unsafe HTML")
+      }
+      sanitizedUpdate.content=cleanedContent
     }
-    sanitizedUpdate.content=cleanedContent
+    if(updateData.tags !==undefined){
+      sanitizedUpdate.tags=normalizeTags(updateData.tags)
+    }
+    const updatedNote= await updateNoteByIdAndUser(
+      noteId,
+      userId,
+      sanitizedUpdate
+    )
+    if(!updatedNote){
+      throw new ApiError(404,"Note not found")
+    }
+   return updatedNote
+  } catch (error) {
+    throw error
   }
-  if(updateData.tags !==undefined){
-    sanitizedUpdate.tags=normalizeTags(updateData.tags)
-  }
-  const updatedNote= await updateNoteByIdAndUser(
-    noteId,
-    userId,
-    sanitizedUpdate
-  )
-  if(!updatedNote){
-    throw new ApiError(404,"Note not found")
-  }
- return updatedNote
 }
 
 export const deleteNote=async(noteId:string,userId:string):Promise<void>=>{
-  const deletedNote= await deleteNoteByIdAndUser(noteId,userId)
-  if(!deletedNote){
-    throw new ApiError(404,"Note not found")
+  try {
+    const deletedNote= await deleteNoteByIdAndUser(noteId,userId)
+    if(!deletedNote){
+      throw new ApiError(404,"Note not found")
+    }
+  } catch (error) {
+    throw error
   }
 }
